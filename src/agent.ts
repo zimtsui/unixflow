@@ -5,7 +5,6 @@ export abstract class Agent implements AsyncIterator<string> {
     protected attachment: Agent | null = null;
     protected parent: Agent | null = null;
     protected id: number = 0;
-    protected forking = false;
 
     protected abstract duplicated(): Agent;
     protected abstract replied(message: string): Promise<string>;
@@ -17,7 +16,7 @@ export abstract class Agent implements AsyncIterator<string> {
         child.id = ++Agent.count;
         this.children.set(child.id, child);
         this.attachment = child;
-        const message = await this.replied(`You are the parent agent. Your id keeps ${this.id}. From now on, you are talking to the child agent, whose id is ${child.id}.`);
+        const message = await this.replied(`${child.id}`);
         return await this.talk(message);
     }
 
