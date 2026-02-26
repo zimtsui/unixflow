@@ -14,9 +14,9 @@ export abstract class Agent implements AsyncIterator<string> {
         const child = this.duplicated();
         child.parent = this;
         child.children = new Map();
-        child.id = Agent.count++;
-        child.forking = true;
+        child.id = ++Agent.count;
         this.children.set(child.id, child);
+        this.attachment = child;
         const message = await this.replied(`You are the parent agent. Your id keeps ${this.id}. From now on, you are talking to the child agent, whose id is ${child.id}.`);
         return await this.talk(message);
     }
@@ -74,7 +74,6 @@ export abstract class Agent implements AsyncIterator<string> {
     }
 
     public async next(message: string): Promise<IteratorResult<string, never>> {
-        if (this.forking) this.forking = false;
         return { done: false, value: await this.replied(message) };
     }
 

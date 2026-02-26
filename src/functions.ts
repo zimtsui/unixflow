@@ -8,7 +8,7 @@ export default [
     },
     {
         name: 'unixflow:attach',
-        description: 'From the next chat round, you will be talking to the child agent who has the specified id.',
+        description: 'Attach yourself to one of your child agents. From the next chat round, you will be talking to the child agent who has the specified id. Your conversation with your parent agent and with other child agents will be hanged on.',
         paraschema: Type.Object({
             id: Type.Number({
                 description: 'The id of the child agent',
@@ -17,7 +17,7 @@ export default [
     },
     {
         name: 'unixflow:detach',
-        description: 'From the next chat round, you are talking to your parent agent if you are a child agent, or you are talking to the user if you are not a child agent.',
+        description: 'Detach yourself from your child agents. From the next chat round, you are talking to your parent agent if you are a child agent, or you are talking to the user if you are not a child agent. Your conversation with all your child agents will be hanged on. ',
         paraschema: Type.Object({}),
     },
     {
