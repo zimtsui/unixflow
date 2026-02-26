@@ -29,20 +29,21 @@ class Agent extends Unixflow.Agent {
             })),
         });
         this.messages.push({ role: 'assistant', content: completion.choices[0]!.message.content! });
-        if (completion.choices[0]!.message.tool_calls?.length === 0) {
+        if (completion.choices[0]!.message.tool_calls?.length) {
+            if (completion.choices[0]!.message.tool_calls?.length === 1) {} else throw new Error();
+            if (completion.choices[0]!.message.tool_calls[0]!.type === 'function') {} else throw new Error();
+            this.currentToolCallId = completion.choices[0]!.message.tool_calls[0]!.id;
+            switch (completion.choices[0]!.message.tool_calls[0]!.function.name as typeof Unixflow.functions[number]['name']) {
+                case 'unixflow:fork': return await this.fork();
+                case 'unixflow:attach': return await this.attach(JSON.parse(completion.choices[0]!.message.tool_calls[0]!.function.arguments).id);
+                case 'unixflow:detach': return await this.detach();
+                case 'unixflow:join': return await this.join(JSON.parse(completion.choices[0]!.message.tool_calls[0]!.function.arguments).id);
+                case 'unixflow:list': return await this.list();
+                default: throw new Error();
+            }
+        } else {
             this.currentToolCallId = '';
             return completion.choices[0]!.message.content!;
-        }
-        if (completion.choices[0]!.message.tool_calls?.length === 1) {} else throw new Error();
-        if (completion.choices[0]!.message.tool_calls[0]!.type === 'function') {} else throw new Error();
-        this.currentToolCallId = completion.choices[0]!.message.tool_calls[0]!.id;
-        switch (completion.choices[0]!.message.tool_calls[0]!.function.name as typeof Unixflow.functions[number]['name']) {
-            case 'unixflow:fork': return await this.fork();
-            case 'unixflow:attach': return await this.attach(JSON.parse(completion.choices[0]!.message.tool_calls[0]!.function.arguments).id);
-            case 'unixflow:detach': return await this.detach();
-            case 'unixflow:join': return await this.join(JSON.parse(completion.choices[0]!.message.tool_calls[0]!.function.arguments).id);
-            case 'unixflow:list': return await this.list();
-            default: throw new Error();
         }
     }
 
