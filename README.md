@@ -2,9 +2,9 @@
 
 Unixflow is a TypeScript framework for multi agent systems.
 
-## Rationale
+## Philosophy
 
-The mechanism of Agents in Unixflow is similar to Unix processes.
+The mechanism of Unixflow agents is similar to Unix processes.
 
 | Unix processes | Unixflow agents |
 | --- | --- |
