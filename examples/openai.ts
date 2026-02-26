@@ -29,48 +29,28 @@ class Agent extends Unixflow.Agent {
             })),
         });
         this.messages.push({ role: 'assistant', content: completion.choices[0]!.message.content! });
-        if (completion.choices[0]!.message.tool_calls?.length === 0) return completion.choices[0]!.message.content!;
+        if (completion.choices[0]!.message.tool_calls?.length === 0) {
+            this.currentToolCallId = '';
+            return completion.choices[0]!.message.content!;
+        }
         if (completion.choices[0]!.message.tool_calls?.length === 1) {} else throw new Error();
         if (completion.choices[0]!.message.tool_calls[0]!.type === 'function') {} else throw new Error();
         this.currentToolCallId = completion.choices[0]!.message.tool_calls[0]!.id;
         switch (completion.choices[0]!.message.tool_calls[0]!.function.name as typeof Unixflow.functions[number]['name']) {
             case 'unixflow:fork': return await this.fork();
-            case 'unixflow:attach': return await this.attach(Number.parseInt(completion.choices[0]!.message.tool_calls[0]!.function.arguments));
+            case 'unixflow:attach': return await this.attach(JSON.parse(completion.choices[0]!.message.tool_calls[0]!.function.arguments).id);
             case 'unixflow:detach': return await this.detach();
-            case 'unixflow:join': return await this.join(Number.parseInt(completion.choices[0]!.message.tool_calls[0]!.function.arguments));
+            case 'unixflow:join': return await this.join(JSON.parse(completion.choices[0]!.message.tool_calls[0]!.function.arguments).id);
             case 'unixflow:list': return await this.list();
             default: throw new Error();
         }
     }
 
-    protected override async talked(message: string): Promise<string> {
-        this.messages.push({ role: 'user', content: message });
-        return await this.send();
-    }
-
-    protected override async forked(fres: string, tres?: string): Promise<string> {
-        this.messages.push({ role: 'tool', content: fres, tool_call_id: this.currentToolCallId });
-        if (tres) this.messages.push({ role: 'user', content: tres });
-        return await this.send();
-    }
-
-    protected override async attached(fres: string): Promise<string> {
-        this.messages.push({ role: 'tool', content: fres, tool_call_id: this.currentToolCallId });
-        return await this.send();
-    }
-
-    protected override async detached(fres: string): Promise<string> {
-        this.messages.push({ role: 'tool', content: fres, tool_call_id: this.currentToolCallId });
-        return await this.send();
-    }
-
-    protected override async joined(fres: string): Promise<string> {
-        this.messages.push({ role: 'tool', content: fres, tool_call_id: this.currentToolCallId });
-        return await this.send();
-    }
-
-    protected override async listed(fres: string): Promise<string> {
-        this.messages.push({ role: 'tool', content: fres, tool_call_id: this.currentToolCallId });
+    protected override async replied(message: string): Promise<string> {
+        if (this.currentToolCallId)
+            this.messages.push({ role: 'tool', content: message, tool_call_id: this.currentToolCallId });
+        else
+            this.messages.push({ role: 'user', content: message });
         return await this.send();
     }
 }

@@ -8,6 +8,7 @@ export abstract class Agent implements AsyncIterator<string> {
     protected forking = false;
 
     protected abstract duplicated(): Agent;
+    protected abstract replied(message: string): Promise<string>;
 
     protected async fork(): Promise<string> {
         const child = this.duplicated();
@@ -16,38 +17,34 @@ export abstract class Agent implements AsyncIterator<string> {
         child.id = Agent.count++;
         child.forking = true;
         this.children.set(child.id, child);
-        const message = await this.forked(`You are the parent agent. Your id keeps ${this.id}. From now on, you are talking to the child agent, whose id is ${child.id}.`);
+        const message = await this.replied(`You are the parent agent. Your id keeps ${this.id}. From now on, you are talking to the child agent, whose id is ${child.id}.`);
         return await this.talk(message);
     }
-    protected abstract forked(fres: string, tres?: string): Promise<string>;
 
     protected async detach(): Promise<string> {
         this.attachment = null;
         const fres = this.parent
             ? `From now on, you are talking to your parent agent, whose id is ${this.parent.id}.`
             : `From now on, you are talking to the user.`;
-        const message = await this.detached(fres);
+        const message = await this.replied(fres);
         return await this.talk(message);
     }
-    protected abstract detached(fres: string): Promise<string>;
 
     protected async attach(id: number): Promise<string> {
         const child = this.children.get(id);
         if (child) {} else throw new Error();
         this.attachment = child;
-        const message = await this.attached(`From now on, you are talking to your child agent whose id is ${id}.`);
+        const message = await this.replied(`From now on, you are talking to your child agent whose id is ${id}.`);
         return await this.talk(message);
     }
-    protected abstract attached(fres: string): Promise<string>;
 
     protected async talk(message: string): Promise<string> {
         while (this.attachment) {
             const response = await this.attachment.next(message).then(result => result.value);
-            message = await this.talked(response);
+            message = await this.replied(response);
         }
         return message;
     }
-    protected abstract talked(tres: string): Promise<string>;
 
     protected async join(id: number): Promise<string> {
         const child = this.children.get(id);
@@ -65,25 +62,20 @@ export abstract class Agent implements AsyncIterator<string> {
             fres += `From now on, you are talking to your parent agent, whose id is ${this.parent.id}.`;
         else
             fres += `From now on, you are talking to the user.`;
-        const message = await this.joined(fres);
+        const message = await this.replied(fres);
         return await this.talk(message);
     }
-    protected abstract joined(fres: string): Promise<string>;
 
     protected async list(): Promise<string> {
         const ids = this.children.keys();
         const fres = `Your id is ${this.id}. Your child agents' ids are ${[...ids].join(', ')}.`;
-        const message = await this.listed(fres);
+        const message = await this.replied(fres);
         return await this.talk(message);
     }
-    protected abstract listed(fres: string): Promise<string>;
 
     public async next(message: string): Promise<IteratorResult<string, never>> {
-        if (this.forking) {
-            this.forking = false;
-            return { done: false, value: await this.forked(message) };
-        } else
-            return { done: false, value: await this.talked(message) };
+        if (this.forking) this.forking = false;
+        return { done: false, value: await this.replied(message) };
     }
 
 }
