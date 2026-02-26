@@ -10,5 +10,11 @@
     "build": "tsc -b ./src/tsconfig.json",
     "clean": "rm -rf ./build"
   },
-  "author": "Zim"
+  "author": "Zim",
+  "devDependencies": {
+    "openai": "^6.25.0"
+  },
+  "peerDependencies": {
+    "@sinclair/typebox": "^0.34.48"
+  }
 }

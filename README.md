@@ -17,3 +17,5 @@ The mechanism of Unixflow agents is similar to Unix processes.
 In legacy multi agent systems, child agents are spawned with empty contexts. It's difficult for the parent agent to pass detailed task requirements to the child agent.
 
 In Unixflow, child agents are spawned with duplicated contexts, and thoroughly understand every detail of the task requirements.
+
+## [Examples](examples/openai.ts)
